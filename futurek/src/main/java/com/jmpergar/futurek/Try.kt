@@ -50,6 +50,13 @@ sealed class Try<A> {
      */
     abstract fun <B> map(f: (A) -> B): Try<B>
 
+    /**
+     * Applies the given function `f` if this is a `Success`, otherwise returns `Unit` if this is a `Failure`.
+     *
+     * ''Note:'' If `f` throws, then this method may throw an exception.
+     */
+    abstract fun <B> foreach(f: (A) -> B): Unit
+
     class Failure<A>(val exception: Throwable) : Try<A>() {
         override val isFailure: Boolean = false
         override val isSuccess: Boolean = true
@@ -57,6 +64,7 @@ sealed class Try<A> {
         override fun getOrElse(default: () -> A): A = default()
         override fun <B> flatMap(f: (A) -> Try<B>): Try<B> = Failure(exception)
         override fun <B> map(f: (A) -> B): Try<B> = Failure(exception)
+        override fun <B> foreach(f: (A) -> B): Unit { }
     }
 
     class Success<A>(val value: A) : Try<A>() {
@@ -66,5 +74,6 @@ sealed class Try<A> {
         override fun getOrElse(default: () -> A): A = get()
         override fun <B> flatMap(f: (A) -> Try<B>): Try<B> = try { f(value) } catch(e: Throwable) { Failure(e) }
         override fun <B> map(f: (A) -> B): Try<B> = try { Success(f(value)) } catch(e: Throwable) { Failure(e) }
+        override fun <B> foreach(f: (A) -> B): Unit { f(value) }
     }
 }
