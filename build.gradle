@@ -21,12 +21,11 @@ buildscript {
 apply plugin: 'kotlin'
 apply plugin: 'maven'
 
-group = 'com.github.JMPergar'
+group = 'jmpergar.futurek'
 
-sourceSets {
-    main.java.srcDirs += 'futurek/src/'
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
-
 
 allprojects {
     repositories {
@@ -34,11 +33,3 @@ allprojects {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.12'
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-android:0.13"
-}
