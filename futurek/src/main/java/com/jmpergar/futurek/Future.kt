@@ -22,25 +22,25 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 
-class Future<T> {
+class Future<A> {
 
-    private val deferred: Deferred<T>
+    private val deferred: Deferred<A>
 
-    private constructor(deferred: Deferred<T>) {
+    private constructor(deferred: Deferred<A>) {
         this.deferred = deferred
     }
 
-    constructor(f: () -> T) : this(async(CommonPool) { f() })
+    constructor(f: () -> A) : this(async(CommonPool) { f() })
 
-    fun <X> map(f: (T) -> X): Future<X> {
+    fun <B> map(f: (A) -> B): Future<B> {
         return Future(async(CommonPool) { f(deferred.await()) })
     }
 
-    fun <X> flatMap(f: (T) -> Future<X>): Future<X> {
+    fun <B> flatMap(f: (A) -> Future<B>): Future<B> {
         return Future(async(CommonPool) { f(deferred.await()).deferred.await() })
     }
 
-    fun onComplete(f: (T) -> Unit) {
+    fun onComplete(f: (A) -> Unit) {
         launch(UI) {
             f(deferred.await())
         }
