@@ -67,6 +67,24 @@ sealed class Try<A> {
     abstract fun filter(p: (A) -> Boolean): Try<A>
 
     /**
+     * Applies the given function `f` if this is a `Failure`, otherwise returns this if this is a `Success`.
+     * This is like `flatMap` for the exception.
+     */
+    abstract fun recoverWith(f: (Throwable) -> Try<A>): Try<A>
+
+    /**
+     * Applies the given function `f` if this is a `Failure`, otherwise returns this if this is a `Success`.
+     * This is like map for the exception.
+     */
+    abstract fun recover(f: (Throwable) -> A): Try<A>
+
+    /**
+     * Inverts this `Try`. If this is a `Failure`, returns its exception wrapped in a `Success`.
+     * If this is a `Success`, returns a `Failure` containing an `UnsupportedOperationException`.
+     */
+    abstract fun failed(): Try<Throwable>
+
+    /**
      * The `Failure` type represents a computation that result in an exception.
      */
     class Failure<A>(val exception: Throwable) : Try<A>() {
@@ -78,6 +96,11 @@ sealed class Try<A> {
         override fun <B> map(f: (A) -> B): Try<B> = Failure(exception)
         override fun <B> foreach(f: (A) -> B): Unit { }
         override fun filter(p: (A) -> Boolean): Try<A> = this
+        override fun recover(f: (Throwable) -> A): Try<A> =
+                try { Success(f(exception)) } catch(e: Throwable) { Failure(e) }
+        override fun recoverWith(f: (Throwable) -> Try<A>): Try<A> =
+                try { f(exception) } catch(e: Throwable) { Failure(e) }
+        override fun failed(): Try<Throwable> = Success(exception)
     }
 
     /**
@@ -92,7 +115,10 @@ sealed class Try<A> {
         override fun <B> map(f: (A) -> B): Try<B> = try { Success(f(value)) } catch(e: Throwable) { Failure(e) }
         override fun <B> foreach(f: (A) -> B): Unit { f(value) }
         override fun filter(p: (A) -> Boolean): Try<A> =
-            try { if (p(value)) this else Failure(NoSuchElementException("Predicate does not hold for " + value)) }
-            catch(e: Throwable) { Failure(e) }
+                try { if (p(value)) this else Failure(NoSuchElementException("Predicate does not hold for " + value)) }
+                catch(e: Throwable) { Failure(e) }
+        override fun recover(f: (Throwable) -> A): Try<A> = this
+        override fun recoverWith(f: (Throwable) -> Try<A>): Try<A> = this
+        override fun failed(): Try<Throwable> = Failure(UnsupportedOperationException("Success.failed"))
     }
 }
