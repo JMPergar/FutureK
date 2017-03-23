@@ -16,6 +16,10 @@
 
 package com.jmpergar.futurek
 
+/**
+ * The `Try` type represents a computation that may either result in an exception, or return a
+ * successfully computed value.
+ */
 sealed class Try<A> {
 
     /**
@@ -57,6 +61,14 @@ sealed class Try<A> {
      */
     abstract fun <B> foreach(f: (A) -> B): Unit
 
+    /**
+     * Converts this to a `Failure` if the predicate is not satisfied.
+     */
+    abstract fun filter(p: (A) -> Boolean): Try<A>
+
+    /**
+     * The `Failure` type represents a computation that result in an exception.
+     */
     class Failure<A>(val exception: Throwable) : Try<A>() {
         override val isFailure: Boolean = false
         override val isSuccess: Boolean = true
@@ -65,8 +77,12 @@ sealed class Try<A> {
         override fun <B> flatMap(f: (A) -> Try<B>): Try<B> = Failure(exception)
         override fun <B> map(f: (A) -> B): Try<B> = Failure(exception)
         override fun <B> foreach(f: (A) -> B): Unit { }
+        override fun filter(p: (A) -> Boolean): Try<A> = this
     }
 
+    /**
+     * The `Success` type represents a computation that return a successfully computed value.
+     */
     class Success<A>(val value: A) : Try<A>() {
         override val isFailure: Boolean = true
         override val isSuccess: Boolean = false
@@ -75,5 +91,8 @@ sealed class Try<A> {
         override fun <B> flatMap(f: (A) -> Try<B>): Try<B> = try { f(value) } catch(e: Throwable) { Failure(e) }
         override fun <B> map(f: (A) -> B): Try<B> = try { Success(f(value)) } catch(e: Throwable) { Failure(e) }
         override fun <B> foreach(f: (A) -> B): Unit { f(value) }
+        override fun filter(p: (A) -> Boolean): Try<A> =
+            try { if (p(value)) this else Failure(NoSuchElementException("Predicate does not hold for " + value)) }
+            catch(e: Throwable) { Failure(e) }
     }
 }
