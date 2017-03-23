@@ -85,6 +85,12 @@ sealed class Try<A> {
     abstract fun failed(): Try<Throwable>
 
     /**
+     * Completes this `Try` by applying the function `f` to this if this is of type `Failure`,
+     * or conversely, by applying `s` if this is a `Success`.
+     */
+    abstract fun transform(s: (A) -> Try<A>, f: (Throwable) -> Try<A>): Try<A>
+
+    /**
      * The `Failure` type represents a computation that result in an exception.
      */
     class Failure<A>(val exception: Throwable) : Try<A>() {
@@ -101,6 +107,8 @@ sealed class Try<A> {
         override fun recoverWith(f: (Throwable) -> Try<A>): Try<A> =
                 try { f(exception) } catch(e: Throwable) { Failure(e) }
         override fun failed(): Try<Throwable> = Success(exception)
+        override fun transform(s: (A) -> Try<A>, f: (Throwable) -> Try<A>): Try<A> =
+                try { f(exception) } catch(e: Throwable) { Failure(e) }
     }
 
     /**
@@ -120,5 +128,6 @@ sealed class Try<A> {
         override fun recover(f: (Throwable) -> A): Try<A> = this
         override fun recoverWith(f: (Throwable) -> Try<A>): Try<A> = this
         override fun failed(): Try<Throwable> = Failure(UnsupportedOperationException("Success.failed"))
+        override fun transform(s: (A) -> Try<A>, f: (Throwable) -> Try<A>): Try<A> = flatMap(s)
     }
 }
