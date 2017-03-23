@@ -33,7 +33,7 @@ sealed class Future<A> {
         fun <A> failed(e: Exception): Future<A> = Failure(e)
 
         fun <A> invoke(f: () -> A, pool: CoroutineDispatcher = CommonPool): Future<A> =
-                Cons(async(pool) { f() }, pool)
+                Async(async(pool) { f() }, pool)
 
     }
 
@@ -68,7 +68,7 @@ private class Failure<A>(val e: Exception): Future<A>() {
 /**
  * An async Future
  */
-private class Cons<A>(val deferred: Deferred<A>, val pool: CoroutineDispatcher): Future<A>() {
+private class Async<A>(val deferred: Deferred<A>, val pool: CoroutineDispatcher): Future<A>() {
 
     override suspend fun <B> map(fa: (A) -> B): Future<B> = Success(fa(deferred.await()))
 
