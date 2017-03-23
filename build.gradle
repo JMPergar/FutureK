@@ -23,6 +23,11 @@ apply plugin: 'maven'
 
 group = 'com.github.JMPergar'
 
+sourceSets {
+    main.java.srcDirs += 'futurek/src/'
+}
+
+
 allprojects {
     repositories {
         jcenter()
