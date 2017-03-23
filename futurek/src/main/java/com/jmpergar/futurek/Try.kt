@@ -19,6 +19,8 @@ package com.jmpergar.futurek
 /**
  * The `Try` type represents a computation that may either result in an exception, or return a
  * successfully computed value.
+ *
+ * Port of https://github.com/scala/scala/blob/v2.12.1/src/library/scala/util/Try.scala
  */
 sealed class Try<A> {
 
