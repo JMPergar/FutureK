@@ -23,6 +23,10 @@ apply plugin: 'maven'
 
 group = 'jmpergar.futurek'
 
+sourceSets {
+    main.java.srcDirs += 'futurek/src/main/java'
+}
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
@@ -32,4 +36,3 @@ allprojects {
         jcenter()
     }
 }
-
