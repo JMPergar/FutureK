@@ -18,7 +18,7 @@ package com.jmpergar.futurek
 
 
 /**
- * Port of https://github.com/scala/scala/blob/v2.12.1/src/library/scala/Option.
+ * Port of https://github.com/scala/scala/blob/v2.12.1/src/library/scala/Option.scala
  *
  * Represents optional values. Instances of `Option`
  * are either an instance of $some or the object $none.
