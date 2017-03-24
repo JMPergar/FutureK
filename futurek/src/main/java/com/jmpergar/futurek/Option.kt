@@ -111,7 +111,6 @@ sealed class Option<A> {
      */
     val nonEmpty = isDefined
 
-
     /**
      * Tests whether the option contains a given value as an element.
      *
