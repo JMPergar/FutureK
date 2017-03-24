@@ -16,6 +16,7 @@
 
 package com.jmpergar.futurek
 
+import java.util.*
 
 /**
  * Port of https://github.com/scala/scala/blob/v2.12.1/src/library/scala/Option.scala
