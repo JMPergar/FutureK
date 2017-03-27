@@ -16,33 +16,71 @@
 
 package com.jmpergar.futurek
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
+/**
+ * A potentially deferred computation
+ */
+sealed class Future<A> {
+    companion object {
+        /**
+         * Lift an already computed value to a Future
+         */
+        fun <A> pure(a: A): Future<A> = Success(a)
 
-class Future<T> {
+        /**
+         * Lift an exception to a failed Future
+         */
+        fun <A> failed(e: Exception): Future<A> = Failure(e)
 
-    private val deferred: Deferred<T>
+        fun <A> invoke(f: () -> A, pool: CoroutineDispatcher = CommonPool): Future<A> =
+                Cons(async(pool) { f() }, pool)
 
-    private constructor(deferred: Deferred<T>) {
-        this.deferred = deferred
     }
 
-    constructor(f: () -> T) : this(async(CommonPool) { f() })
+    /**
+     * Functor map. Maps over the contents of the Future transforming its resulting value A to B
+     */
+    abstract suspend fun <B> map(fa: (A) -> B): Future<B>
 
-    fun <X> map(f: (T) -> X): Future<X> {
-        return Future(async(CommonPool) { f(deferred.await()) })
-    }
+    /**
+     * Monadic bind. Chain sequential computations in the (A) -> Future<B> Kleisli
+     */
+    abstract suspend fun <B> flatMap(f: (A) -> Future<B>): Future<B>
 
-    fun <X> flatMap(f: (T) -> Future<X>): Future<X> {
-        return Future(async(CommonPool) { f(deferred.await()).deferred.await() })
-    }
+}
 
-    fun onComplete(f: (T) -> Unit) {
+/**
+ * An already completed future
+ */
+private class Success<A>(val a: A): Future<A>() {
+    override suspend fun <B> map(fa: (A) -> B): Future<B> = Success(fa(a))
+    override suspend fun <B> flatMap(f: (A) -> Future<B>): Future<B> = f(a)
+}
+
+/**
+ * A failed Future
+ */
+private class Failure<A>(val e: Exception): Future<A>() {
+    override suspend fun <B> map(fa: (A) -> B): Future<B> = Failure(e)
+    override suspend fun <B> flatMap(f: (A) -> Future<B>): Future<B> = Failure(e)
+}
+
+/**
+ * An async Future
+ */
+private class Cons<A>(val deferred: Deferred<A>, val pool: CoroutineDispatcher): Future<A>() {
+
+    override suspend fun <B> map(fa: (A) -> B): Future<B> = Success(fa(deferred.await()))
+
+    override suspend fun <B> flatMap(f: (A) -> Future<B>): Future<B> =
+        f(deferred.await())
+
+}
+
+/*
+    fun onComplete(f: (A) -> Unit) {
         launch(UI) {
             f(deferred.await())
         }
     }
-}
+ */
