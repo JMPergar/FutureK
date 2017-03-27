@@ -7,7 +7,7 @@ A simple monadic future implementation based on coroutines for Kotlin
 
 It's a simple type that help us to manage the asynchrony and the concurrency. With this library you can write async code in sync way.
 
-For launch an async process it's than simple like this:
+For launch an async process it's as simple as this:
 
 ```kotlin
 Future { doHeavyTask() }
